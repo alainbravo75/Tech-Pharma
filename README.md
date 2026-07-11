@@ -5,10 +5,11 @@ Application web progressive (PWA) de gestion de pharmacie, conçue pour fonction
 ## État d'avancement — MVP
 
 - [x] Étape 1 — Authentification + gestion des utilisateurs
-- [x] **Étape 2 — Gestion de stock (produits, lots, alertes péremption)** *(cette version)*
-- [ ] Étape 3 — Point de vente offline + synchronisation
-- [ ] Étape 4 — Envoi de reçu par WhatsApp / SMS
-- [ ] Ordonnances et rapports avancés (post-MVP)
+- [x] Étape 2 — Gestion de stock (produits, lots, alertes péremption)
+- [x] Étape 3 — Point de vente offline + synchronisation
+- [x] Étape 4 — Envoi de reçu par WhatsApp / SMS
+- [x] **Rapports (journalier/hebdomadaire/mensuel) + export PDF** *(cette version)*
+- [ ] Ordonnances et suivi patients (post-MVP, sur demande)
 
 ## Stack technique
 
@@ -59,6 +60,11 @@ npm run dev           # démarre sur http://localhost:5173
 
 Voir `docs/schema-bdd.md` et `docs/plan-sync.md` pour le détail du schéma de données et de la stratégie de synchronisation offline/online.
 
+## Envoi de reçu (WhatsApp / SMS)
+
+- **WhatsApp** : fonctionne immédiatement, sans configuration — ouvre un lien `wa.me` avec le message du reçu pré-rempli. Fonctionne même si la vente n'est pas encore synchronisée (le texte est généré depuis les données locales).
+- **SMS** (Africa's Talking) : optionnel. Renseignez `AT_API_KEY` et `AT_USERNAME` (et `AT_SENDER_ID` si vous avez un expéditeur validé) dans `backend/.env`. Sans ces variables, le bouton SMS reste désactivé dans l'interface — aucune erreur, juste une fonctionnalité en moins. Nécessite que la vente soit déjà synchronisée avec le serveur (donc une connexion internet).
+
 ## Prochaine étape
 
-Étape 2 : gestion de stock (produits, lots, dates de péremption, alertes).
+MVP terminé. Prochaines étapes possibles (post-MVP, sur demande) : ordonnances et suivi patients, rapports avancés (export CSV/PDF, chiffre d'affaires par période), gestion multi-succursales (le champ `pharmacy_id` est déjà prévu partout dans le schéma).

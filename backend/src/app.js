@@ -9,6 +9,7 @@ import produitsRoutes from './routes/produits.js';
 import mouvementsRoutes from './routes/mouvements.js';
 import ventesRoutes from './routes/ventes.js';
 import tauxChangeRoutes from './routes/tauxChange.js';
+import rapportsRoutes from './routes/rapports.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/produits', produitsRoutes);
 app.use('/api/mouvements', mouvementsRoutes);
 app.use('/api/ventes', ventesRoutes);
 app.use('/api/taux-change', tauxChangeRoutes);
+app.use('/api/rapports', rapportsRoutes);
 
 // Gestion des routes inconnues
 app.use((req, res) => {

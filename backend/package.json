@@ -10,16 +10,17 @@
     "db:init": "node src/db/init.js"
   },
   "dependencies": {
-    "africastalking": "^0.8.0",
-    "bcrypt": "^5.1.1",
+    "africastalking": "^0.6.4",
     "better-sqlite3": "^11.3.0",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "uuid": "^14.0.1",
+    "pdfkit": "^0.15.0",
+    "uuid": "^9.0.1",
     "zod": "^3.23.8"
   }
 }

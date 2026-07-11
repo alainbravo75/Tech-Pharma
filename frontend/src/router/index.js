@@ -31,6 +31,12 @@ const routes = [
     component: () => import('../views/CaisseView.vue'),
     meta: { necessiteAuth: true },
   },
+  {
+    path: '/rapports',
+    name: 'rapports',
+    component: () => import('../views/RapportsView.vue'),
+    meta: { necessiteAuth: true, rolesAutorises: ['admin', 'pharmacien'] },
+  },
 ];
 
 const router = createRouter({
