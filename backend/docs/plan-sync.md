@@ -14,8 +14,13 @@ File d'opérations locale (event queue) plutôt qu'une synchro bidirectionnelle 
 5. Indicateur visuel (`StatutSync.vue`) : 🟢 En ligne / ⚪ Hors ligne / 🔄 Synchronisation / 🔴 Erreur, avec compteur d'opérations en attente.
 6. Robustesse : Dexie/IndexedDB persiste au-delà d'une fermeture inattendue du navigateur — rien n'est perdu.
 
-## État actuel (étape 1)
+## État actuel (étape 3)
 
-Cette étape pose les fondations : `sync_queue` (Dexie) et `syncStatus.js` existent, mais aucune opération métier (vente, stock) n'y est encore poussée — ce sera fait à l'étape 3 (point de vente offline).
+Implémenté :
+- `ventes_locales` (Dexie) : écriture immédiate de chaque vente avant tout appel réseau.
+- `syncEngine.js` : synchronise automatiquement dès que `statutReseau` passe à `en_ligne` (watcher Vue), avec une nouvelle tentative de sécurité toutes les 30s tant qu'il reste des ventes en attente.
+- `produits_cache` (Dexie) : copie locale du catalogue, utilisée par la caisse quand l'API est injoignable — la vente reste possible hors ligne du début à la fin.
+- Déduction de stock FEFO côté serveur (premier périmé, premier sorti), avec tolérance au stock négatif + alerte journalisée plutôt que rejet de la vente.
+- Idempotence : l'id de vente est généré côté client (UUID), donc un renvoi après coupure réseau ne crée pas de doublon.
 
-La session utilisateur, elle, est déjà pleinement offline-capable : après une première connexion en ligne, elle est mise en cache chiffrée (AES-GCM) et permet de rouvrir l'app sans réseau.
+À venir (étape 4+) : file `sync_queue` générique pour d'autres types d'opérations (actuellement les ventes utilisent leur propre table dédiée, suffisant pour ce volume).

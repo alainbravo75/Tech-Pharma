@@ -40,6 +40,16 @@
           <span class="etiquette">Chiffre d'affaires USD</span>
           <strong>{{ formaterMontant(rapport.chiffreAffaires.USD) }} USD</strong>
         </div>
+        <div class="carte carte-chiffre carte-chiffre--accent">
+          <span class="etiquette">CA total consolidé</span>
+          <strong>{{ formaterMontant(rapport.chiffreAffairesTotalCdf) }} CDF</strong>
+          <span class="sous-valeur">≈ {{ formaterMontant(rapport.chiffreAffairesTotalUsd) }} USD</span>
+        </div>
+        <div class="carte carte-chiffre" :class="rapport.beneficeCdf >= 0 ? 'carte-chiffre--positif' : 'carte-chiffre--negatif'">
+          <span class="etiquette">Bénéfice estimé</span>
+          <strong>{{ formaterMontant(rapport.beneficeCdf) }} CDF</strong>
+          <span class="sous-valeur">≈ {{ formaterMontant(rapport.beneficeUsd) }} USD</span>
+        </div>
         <div class="carte carte-chiffre">
           <span class="etiquette">Nombre de ventes</span>
           <strong>{{ rapport.nombreVentes }}</strong>
@@ -49,6 +59,10 @@
           <strong>{{ formaterMontant(rapport.pertes.valeur_perte_cdf) }} CDF</strong>
         </div>
       </div>
+
+      <p class="note-benefice">
+        Le bénéfice est estimé à partir du prix d'achat renseigné sur chaque produit (recette − coût d'achat des articles vendus). S'il vous semble incorrect, vérifiez que le prix d'achat est bien renseigné pour vos produits dans le Stock.
+      </p>
 
       <div class="grille-deux-colonnes">
         <div class="carte">
@@ -75,6 +89,31 @@
         </div>
 
         <div class="carte">
+          <h2>Produits les plus rentables</h2>
+          <table v-if="rapport.produitsPlusRentables.length > 0">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Qté</th>
+                <th>Bénéfice</th>
+                <th>Marge</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="p in rapport.produitsPlusRentables" :key="p.id">
+                <td>{{ p.nom }}</td>
+                <td>{{ p.quantite_vendue }}</td>
+                <td :class="{ 'valeur-negative': p.benefice_cdf < 0 }">{{ formaterMontant(p.benefice_cdf) }} CDF</td>
+                <td :class="{ 'valeur-negative': p.marge_pourcent < 0 }">{{ p.marge_pourcent.toFixed(0) }}%</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else class="etat-vide">Aucune donnée sur cette période.</p>
+        </div>
+      </div>
+
+      <div class="grille-deux-colonnes grille-deux-colonnes--stock">
+        <div class="carte">
           <h2>Valeur du stock actuel</h2>
           <div class="ligne-info">
             <span>Au prix d'achat</span>
@@ -87,8 +126,10 @@
           <p class="note-stock">
             Valorisation à la date du jour (indépendante de la période sélectionnée ci-dessus).
           </p>
+        </div>
 
-          <h2 class="titre-secondaire">Pertes sur la période</h2>
+        <div class="carte">
+          <h2>Pertes sur la période</h2>
           <div class="ligne-info">
             <span>Quantité perdue</span>
             <strong>{{ rapport.pertes.quantite_perdue }}</strong>
@@ -230,6 +271,22 @@ function formaterMontant(montant) {
   border-left: 4px solid var(--couleur-primaire);
 }
 .carte-chiffre strong { font-size: 1.4rem; }
+.carte-chiffre .sous-valeur { font-size: 0.85rem; color: var(--texte-secondaire); font-weight: 600; }
+
+.carte-chiffre--accent { border-left-color: var(--couleur-accent); }
+.carte-chiffre--positif { border-left-color: var(--couleur-succes); }
+.carte-chiffre--positif strong { color: var(--couleur-succes); }
+.carte-chiffre--negatif { border-left-color: var(--couleur-danger); }
+.carte-chiffre--negatif strong { color: var(--couleur-danger); }
+
+.note-benefice {
+  font-size: 0.8rem;
+  color: var(--texte-secondaire);
+  background: var(--fond-neutre);
+  border-radius: var(--rayon);
+  padding: var(--espace-sm) var(--espace-md);
+  margin: calc(-1 * var(--espace-md)) 0 var(--espace-lg);
+}
 
 .etiquette {
   font-size: 0.78rem;
@@ -245,9 +302,12 @@ function formaterMontant(montant) {
   gap: var(--espace-lg);
   align-items: start;
 }
+.grille-deux-colonnes--stock { margin-top: var(--espace-lg); grid-template-columns: 1fr 1fr; }
 
 .grille-deux-colonnes h2 { font-size: 1rem; margin-bottom: var(--espace-md); }
 .titre-secondaire { margin-top: var(--espace-lg); }
+
+.valeur-negative { color: var(--couleur-danger); font-weight: 700; }
 
 .ligne-info {
   display: flex;

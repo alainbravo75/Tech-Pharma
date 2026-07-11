@@ -36,7 +36,17 @@ export function genererPdfRapport({ rapport, nomPharmacie, res }) {
   doc.fontSize(10).fillColor('#334155');
   doc.text(`Franc congolais (CDF) : ${formaterMontant(rapport.chiffreAffaires.CDF)} CDF`);
   doc.text(`Dollar américain (USD) : ${formaterMontant(rapport.chiffreAffaires.USD)} USD`);
+  doc.moveDown(0.2);
+  doc.font('Helvetica-Bold');
+  doc.text(`Total consolidé : ${formaterMontant(rapport.chiffreAffairesTotalCdf)} CDF  (≈ ${formaterMontant(rapport.chiffreAffairesTotalUsd)} USD)`);
+  doc.font('Helvetica');
   doc.text(`Nombre de ventes : ${rapport.nombreVentes}`);
+  doc.moveDown(0.4);
+  doc.fillColor(rapport.beneficeCdf >= 0 ? '#1a7d43' : '#b3261e');
+  doc.font('Helvetica-Bold').text(
+    `Bénéfice estimé : ${formaterMontant(rapport.beneficeCdf)} CDF  (≈ ${formaterMontant(rapport.beneficeUsd)} USD)`
+  );
+  doc.font('Helvetica').fillColor('#334155');
   doc.moveDown(1);
 
   ligneSeparatrice(doc);
@@ -59,6 +69,30 @@ export function genererPdfRapport({ rapport, nomPharmacie, res }) {
         doc,
         [p.nom, String(p.quantite_vendue), formaterMontant(p.montant_cdf), formaterMontant(p.montant_usd)],
         colonnes
+      );
+    }
+  }
+
+  doc.moveDown(1);
+  ligneSeparatrice(doc);
+
+  // Produits les plus rentables
+  doc.fontSize(12).fillColor('#1c2321').text('Produits les plus rentables');
+  doc.moveDown(0.4);
+
+  if (rapport.produitsPlusRentables.length === 0) {
+    doc.fontSize(10).fillColor('#5b6663').text('Aucune donnée sur cette période.');
+  } else {
+    const colonnesRentab = [220, 90, 100, 100];
+    doc.fontSize(9).fillColor('#5b6663');
+    enteteTableau(doc, ['Produit', 'Qté', 'Bénéfice CDF', 'Marge %'], colonnesRentab);
+
+    doc.fontSize(9.5).fillColor('#1c2321');
+    for (const p of rapport.produitsPlusRentables) {
+      ligneTableau(
+        doc,
+        [p.nom, String(p.quantite_vendue), formaterMontant(p.benefice_cdf), `${p.marge_pourcent.toFixed(0)}%`],
+        colonnesRentab
       );
     }
   }
