@@ -1,0 +1,194 @@
+/*
+  Design system - Application de gestion de pharmacie
+
+  Choix assumé : pas de police web externe. Le contexte (connexions
+  faibles, coupures fréquentes, vieux PC) rend le chargement d'une
+  police distante risqué et inutile. La personnalité vient du contraste
+  de graisses/tailles avec la stack système (rapide, toujours disponible
+  même hors ligne), pas d'un habillage typographique importé.
+*/
+
+:root {
+  /* Couleurs */
+  --couleur-primaire: #0f6e63;       /* sarcelle profond - confiance, médical, sobre */
+  --couleur-primaire-fonce: #0a4f47;
+  --couleur-primaire-claire: #e6f2f0;
+  --couleur-accent: #c1622d;         /* terre cuite adouci - alertes/actions secondaires */
+  --couleur-danger: #b3261e;
+  --couleur-succes: #1a7d43;
+  --couleur-avertissement: #b8860b;
+
+  --fond-page: #f7f8f7;
+  --fond-carte: #ffffff;
+  --fond-neutre: #eef1f0;
+  --texte-principal: #1c2321;
+  --texte-secondaire: #5b6663;
+  --texte-neutre: #334155;
+  --bordure: #dde3e1;
+
+  /* Typographie */
+  --police-systeme: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Espacements */
+  --espace-xs: 0.4rem;
+  --espace-sm: 0.75rem;
+  --espace-md: 1.25rem;
+  --espace-lg: 2rem;
+  --espace-xl: 3rem;
+
+  --rayon: 10px;
+  --ombre: 0 1px 3px rgba(15, 35, 30, 0.08), 0 1px 2px rgba(15, 35, 30, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--police-systeme);
+  background: var(--fond-page);
+  color: var(--texte-principal);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  margin: 0 0 var(--espace-sm) 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.1rem; }
+
+p { margin: 0 0 var(--espace-sm) 0; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--couleur-primaire);
+  outline-offset: 2px;
+}
+
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: var(--rayon);
+  padding: 0.7rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.bouton:active { transform: scale(0.98); }
+
+.bouton--primaire {
+  background: var(--couleur-primaire);
+  color: #fff;
+}
+.bouton--primaire:hover { background: var(--couleur-primaire-fonce); }
+.bouton--primaire:disabled { background: #9db8b3; cursor: not-allowed; }
+
+.bouton--secondaire {
+  background: var(--fond-neutre);
+  color: var(--texte-principal);
+}
+.bouton--secondaire:hover { background: #e2e7e5; }
+
+.bouton--danger {
+  background: #fdecea;
+  color: var(--couleur-danger);
+}
+.bouton--danger:hover { background: #fbdad7; }
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: var(--espace-md);
+}
+
+.champ label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texte-secondaire);
+}
+
+.champ input,
+.champ select {
+  padding: 0.65rem 0.8rem;
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon);
+  font-size: 1rem;
+  background: #fff;
+  color: var(--texte-principal);
+}
+
+.champ input:focus,
+.champ select:focus {
+  border-color: var(--couleur-primaire);
+  outline: none;
+}
+
+.carte {
+  background: var(--fond-carte);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  padding: var(--espace-lg);
+}
+
+.message-erreur {
+  background: #fdecea;
+  color: var(--couleur-danger);
+  border-radius: var(--rayon);
+  padding: var(--espace-sm) var(--espace-md);
+  font-size: 0.9rem;
+  margin-bottom: var(--espace-md);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.badge--admin { background: #e6f2f0; color: var(--couleur-primaire-fonce); }
+.badge--pharmacien { background: #eef2ff; color: #3730a3; }
+.badge--caissier { background: #fef3e2; color: #92400e; }
+.badge--inactif { background: #f1f5f9; color: #64748b; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--texte-secondaire);
+  padding: 0.6rem 0.8rem;
+  border-bottom: 2px solid var(--bordure);
+}
+
+td {
+  padding: 0.75rem 0.8rem;
+  border-bottom: 1px solid var(--bordure);
+  font-size: 0.95rem;
+}

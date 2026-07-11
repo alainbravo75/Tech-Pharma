@@ -1,0 +1,26 @@
+# Dépendances
+node_modules/
+
+# Environnement
+.env
+.env.local
+
+# Base de données locale
+backend/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Build
+frontend/dist/
+frontend/dev-dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / éditeurs
+.DS_Store
+.vscode/
+.idea/
