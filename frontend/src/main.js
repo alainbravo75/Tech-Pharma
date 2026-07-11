@@ -4,6 +4,7 @@ import App from './App.vue';
 import router from './router/index.js';
 import { useAuthStore } from './stores/authStore.js';
 import { demarrerSurveillanceReseau } from './sync/syncStatus.js';
+import { demarrerMoteurSync } from './sync/syncEngine.js';
 import './assets/styles.css';
 
 const app = createApp(App);
@@ -14,6 +15,7 @@ app.use(createPinia());
 // redirigerait à tort vers /connexion même avec une session valide en cache.
 const authStore = useAuthStore();
 demarrerSurveillanceReseau();
+demarrerMoteurSync();
 
 authStore.initialiser().finally(() => {
   app.use(router);

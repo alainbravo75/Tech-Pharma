@@ -10,6 +10,7 @@
     "db:init": "node src/db/init.js"
   },
   "dependencies": {
+    "africastalking": "^0.8.0",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^11.3.0",
     "cors": "^2.8.5",

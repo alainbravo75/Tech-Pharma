@@ -4,6 +4,7 @@
       <div class="logo-pharmacie" aria-hidden="true">+</div>
       <nav>
         <RouterLink to="/" class="lien-nav">Tableau de bord</RouterLink>
+        <RouterLink to="/caisse" class="lien-nav">Caisse</RouterLink>
         <RouterLink to="/stock" class="lien-nav">Stock</RouterLink>
         <RouterLink to="/utilisateurs" class="lien-nav" v-if="authStore.estAdmin">Utilisateurs</RouterLink>
       </nav>

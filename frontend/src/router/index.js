@@ -25,6 +25,12 @@ const routes = [
     component: () => import('../views/StockView.vue'),
     meta: { necessiteAuth: true },
   },
+  {
+    path: '/caisse',
+    name: 'caisse',
+    component: () => import('../views/CaisseView.vue'),
+    meta: { necessiteAuth: true },
+  },
 ];
 
 const router = createRouter({

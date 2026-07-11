@@ -77,7 +77,7 @@
         <tbody>
           <tr v-for="p in produitsStore.liste" :key="p.id">
             <td>
-              <strong>{{ p.nom }}</strong>
+              <button class="nom-produit-clickable" @click="ouvrirDetail(p)">{{ p.nom }}</button>
               <div class="sous-texte">{{ p.fabricant || '—' }}</div>
             </td>
             <td>{{ p.forme || '—' }}<span v-if="p.dosage"> · {{ p.dosage }}</span></td>
@@ -88,6 +88,7 @@
             </td>
             <td>{{ formaterMontant(p.prix_vente_cdf) }} CDF<br /><span class="sous-texte">{{ formaterMontant(p.prix_vente_usd) }} USD</span></td>
             <td class="cellule-actions">
+              <button class="lien-action" @click="ouvrirDetail(p)">Détails</button>
               <button class="lien-action" @click="ouvrirEntreeStock(p)">+ Stock</button>
               <button class="lien-action" @click="ouvrirAjustement(p)">Ajuster</button>
               <button v-if="authStore.utilisateur?.role !== 'caissier'" class="lien-action" @click="ouvrirModificationProduit(p)">Modifier</button>
@@ -199,6 +200,79 @@
       </div>
     </div>
 
+    <!-- Modale détail produit (fiche + historique des lots) -->
+    <div v-if="modaleDetailOuverte" class="fond-modale" @click.self="modaleDetailOuverte = false">
+      <div class="carte modale modale--large">
+        <h2>{{ detailProduit?.produit?.nom }}</h2>
+        <p class="sous-titre-modale">
+          {{ detailProduit?.produit?.forme || '—' }}<span v-if="detailProduit?.produit?.dosage"> · {{ detailProduit.produit.dosage }}</span>
+          <span v-if="detailProduit?.produit?.fabricant"> · {{ detailProduit.produit.fabricant }}</span>
+        </p>
+
+        <div class="grille-fiche">
+          <div>
+            <span class="etiquette-fiche">Stock total</span>
+            <strong>{{ quantiteTotaleDetail }} unité(s)</strong>
+          </div>
+          <div>
+            <span class="etiquette-fiche">Code-barres</span>
+            <strong>{{ detailProduit?.produit?.code_barre || '—' }}</strong>
+          </div>
+          <div>
+            <span class="etiquette-fiche">Prix vente</span>
+            <strong>{{ formaterMontant(detailProduit?.produit?.prix_vente_cdf) }} CDF / {{ formaterMontant(detailProduit?.produit?.prix_vente_usd) }} USD</strong>
+          </div>
+          <div>
+            <span class="etiquette-fiche">Seuil stock faible</span>
+            <strong>{{ detailProduit?.produit?.seuil_stock_faible }}</strong>
+          </div>
+        </div>
+
+        <h3 class="titre-section">Historique des lots</h3>
+        <div class="tableau-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>N° lot</th>
+                <th>Date d'achat</th>
+                <th>Date péremption</th>
+                <th>Quantité</th>
+                <th>Fournisseur</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="lot in detailProduit?.lots || []" :key="lot.id">
+                <td>{{ lot.numero_lot || '—' }}</td>
+                <td>{{ formaterDate(lot.date_reception) }}</td>
+                <td>{{ formaterDate(lot.date_peremption) }}</td>
+                <td>{{ lot.quantite }}</td>
+                <td>{{ lot.fournisseur || '—' }}</td>
+                <td>
+                  <span class="badge" :class="classeBadgeStatutLot(lot)">{{ libelleStatutLot(lot) }}</span>
+                </td>
+              </tr>
+              <tr v-if="!detailProduit?.lots?.length">
+                <td colspan="6" class="etat-vide">Aucun lot enregistré pour ce produit.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="actions-modale">
+          <button type="button" class="bouton bouton--secondaire" @click="modaleDetailOuverte = false">Fermer</button>
+          <button
+            v-if="authStore.utilisateur?.role !== 'caissier'"
+            type="button"
+            class="bouton bouton--primaire"
+            @click="modaleDetailOuverte = false; ouvrirEntreeStock(detailProduit.produit)"
+          >
+            + Ajouter un lot
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modale ajustement -->
     <div v-if="modaleAjustementOuverte" class="fond-modale" @click.self="modaleAjustementOuverte = false">
       <div class="carte modale">
@@ -265,6 +339,8 @@ const alertesOuvertes = ref(false);
 const modaleProduitOuverte = ref(false);
 const modaleEntreeOuverte = ref(false);
 const modaleAjustementOuverte = ref(false);
+const modaleDetailOuverte = ref(false);
+const detailProduit = ref(null);
 const produitEnEdition = ref(null);
 const produitCible = ref(null);
 const lotsCible = ref([]);
@@ -292,6 +368,40 @@ const totalAlertes = computed(() =>
   produitsStore.alertes.peremptionProche.length +
   produitsStore.alertes.expires.length
 );
+
+const quantiteTotaleDetail = computed(() =>
+  (detailProduit.value?.lots || []).reduce((somme, lot) => somme + (lot.quantite > 0 ? lot.quantite : 0), 0)
+);
+
+const SEUIL_JOURS_PEREMPTION_PROCHE = 60;
+
+function statutLot(lot) {
+  const aujourdHui = new Date();
+  const datePeremption = new Date(lot.date_peremption);
+  if (lot.quantite <= 0) return 'ecoule';
+  if (datePeremption < aujourdHui) return 'expire';
+  const seuilDate = new Date(aujourdHui.getTime() + SEUIL_JOURS_PEREMPTION_PROCHE * 86400000);
+  if (datePeremption <= seuilDate) return 'proche';
+  return 'ok';
+}
+
+function libelleStatutLot(lot) {
+  return { ok: 'OK', proche: 'Péremption proche', expire: 'Expiré', ecoule: 'Épuisé' }[statutLot(lot)];
+}
+
+function classeBadgeStatutLot(lot) {
+  return {
+    ok: 'badge--admin',
+    proche: 'badge--caissier',
+    expire: 'badge--inactif',
+    ecoule: 'badge--inactif',
+  }[statutLot(lot)];
+}
+
+async function ouvrirDetail(p) {
+  detailProduit.value = await produitsStore.chargerDetail(p.id);
+  modaleDetailOuverte.value = true;
+}
 
 onMounted(() => {
   produitsStore.charger();
@@ -488,7 +598,35 @@ async function soumettreAjustement() {
 }
 
 .modale { width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
+.modale--large { max-width: 640px; }
 .sous-titre-modale { color: var(--texte-secondaire); margin-top: -0.5rem; margin-bottom: var(--espace-md); font-size: 0.9rem; }
+
+.nom-produit-clickable {
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--texte-principal);
+  text-align: left;
+  cursor: pointer;
+}
+.nom-produit-clickable:hover { color: var(--couleur-primaire); text-decoration: underline; }
+
+.grille-fiche {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--espace-md);
+  background: var(--fond-neutre);
+  border-radius: var(--rayon);
+  padding: var(--espace-md);
+  margin-bottom: var(--espace-lg);
+}
+.grille-fiche > div { display: flex; flex-direction: column; gap: 0.2rem; }
+.etiquette-fiche { font-size: 0.75rem; color: var(--texte-secondaire); text-transform: uppercase; letter-spacing: 0.03em; }
+
+.titre-section { font-size: 0.95rem; margin-bottom: var(--espace-sm); }
+.tableau-scroll { overflow-x: auto; margin-bottom: var(--espace-sm); }
 
 .ligne-champs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--espace-md); }
 

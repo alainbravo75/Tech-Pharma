@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import api from '../services/api.js';
+import { remplacerCache, rechercherProduits } from '../db/repositories/produitsCacheRepository.js';
 
 export const useProduitsStore = defineStore('produits', {
   state: () => ({
@@ -8,6 +9,7 @@ export const useProduitsStore = defineStore('produits', {
     detailCourant: null, // { produit, lots }
     chargement: false,
     erreur: null,
+    depuisCache: false,
   }),
 
   actions: {
@@ -17,8 +19,22 @@ export const useProduitsStore = defineStore('produits', {
       try {
         const { data } = await api.get('/produits', { params: recherche ? { recherche } : {} });
         this.liste = data.produits;
+        this.depuisCache = false;
+        // Ne cache que la liste complète (pas les résultats filtrés), pour
+        // que le cache reste une copie fidèle du catalogue entier.
+        if (!recherche) {
+          remplacerCache(data.produits).catch(() => {});
+        }
       } catch (err) {
-        this.erreur = err.response?.data?.erreur || 'Impossible de charger le stock (hors ligne ?).';
+        // Hors ligne (ou serveur injoignable) : on retombe sur le cache
+        // local plutôt que d'afficher un écran vide - la caisse doit
+        // rester utilisable sans réseau.
+        try {
+          this.liste = await rechercherProduits(recherche);
+          this.depuisCache = true;
+        } catch {
+          this.erreur = err.response?.data?.erreur || 'Impossible de charger le stock (hors ligne, aucun cache disponible).';
+        }
       } finally {
         this.chargement = false;
       }
