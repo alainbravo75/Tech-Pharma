@@ -7,7 +7,7 @@ import { valider } from '../middlewares/valider.js';
 const router = Router();
 router.use(authentifier);
 
-const schemaCreationProduit = z.object({
+const champsProduit = z.object({
   nom: z.string().min(2, 'Le nom est requis.'),
   forme: z.string().optional(),
   dosage: z.string().optional(),
@@ -17,9 +17,21 @@ const schemaCreationProduit = z.object({
   prixVenteCdf: z.number().nonnegative().optional(),
   prixVenteUsd: z.number().nonnegative().optional(),
   seuilStockFaible: z.number().int().nonnegative().optional(),
+  // Stock initial optionnel : évite d'avoir à repasser par "+ Stock" juste
+  // après la création d'un nouveau produit.
+  quantiteInitiale: z.number().int().nonnegative().optional(),
+  datePeremptionInitiale: z.string().optional(),
+  numeroLotInitial: z.string().optional(),
+  fournisseurInitial: z.string().optional(),
 });
 
-const schemaModificationProduit = schemaCreationProduit.partial();
+const schemaCreationProduit = champsProduit.refine(
+  (data) => !data.quantiteInitiale || data.datePeremptionInitiale,
+  { message: 'La date de péremption est requise si une quantité initiale est indiquée.', path: ['datePeremptionInitiale'] }
+);
+
+const schemaModificationProduit = champsProduit.partial();
+
 
 const schemaEntreeStock = z.object({
   quantite: z.number().int().positive('La quantité doit être positive.'),

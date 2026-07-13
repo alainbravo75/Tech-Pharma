@@ -55,11 +55,13 @@ export function creerVente({ id, pharmacyId, utilisateurId, patientId, devise, t
            VALUES (?, ?, ?, NULL, 'vente', ?, ?, ?)`
         ).run(uuidv4(), pharmacyId, ligne.produitId, -quantiteRestante, utilisateurId, id);
 
+        const produitInfo = db.prepare('SELECT nom FROM produits WHERE id = ?').get(ligne.produitId);
+
         journaliser({
           pharmacyId,
           utilisateurId,
           action: 'stock_negatif_vente',
-          details: { produit_id: ligne.produitId, vente_id: id, quantite_manquante: quantiteRestante },
+          details: { produit: produitInfo?.nom, quantite_manquante: quantiteRestante },
         });
       }
 

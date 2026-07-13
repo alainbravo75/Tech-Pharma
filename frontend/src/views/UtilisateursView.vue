@@ -11,7 +11,7 @@
     <p v-if="store.erreur" class="message-erreur" role="alert">{{ store.erreur }}</p>
 
     <div class="carte">
-      <table>
+      <table class="tableau-carte">
         <thead>
           <tr>
             <th>Nom</th>
@@ -24,15 +24,15 @@
         </thead>
         <tbody>
           <tr v-for="u in store.liste" :key="u.id">
-            <td>{{ u.nom }}</td>
-            <td>{{ u.telephone }}</td>
-            <td><span class="badge" :class="`badge--${u.role}`">{{ libelleRole(u.role) }}</span></td>
-            <td>
+            <td data-label="Nom">{{ u.nom }}</td>
+            <td data-label="Téléphone">{{ u.telephone }}</td>
+            <td data-label="Rôle"><span class="badge" :class="`badge--${u.role}`">{{ libelleRole(u.role) }}</span></td>
+            <td data-label="Statut">
               <span class="badge" :class="u.actif ? `badge--${u.role}` : 'badge--inactif'">
                 {{ u.actif ? 'Actif' : 'Inactif' }}
               </span>
             </td>
-            <td>{{ formaterDate(u.derniere_connexion) }}</td>
+            <td data-label="Dernière connexion">{{ formaterDate(u.derniere_connexion) }}</td>
             <td class="cellule-actions">
               <button class="lien-action" @click="ouvrirModification(u)">Modifier</button>
               <button

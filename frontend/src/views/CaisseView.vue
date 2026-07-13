@@ -148,7 +148,7 @@
     <!-- Historique du jour -->
     <div class="carte historique-jour">
       <h2>Ventes du jour ({{ caisseStore.ventesDuJourListe.length }})</h2>
-      <table v-if="caisseStore.ventesDuJourListe.length > 0">
+      <table v-if="caisseStore.ventesDuJourListe.length > 0" class="tableau-carte">
         <thead>
           <tr>
             <th>Heure</th>
@@ -159,10 +159,10 @@
         </thead>
         <tbody>
           <tr v-for="v in caisseStore.ventesDuJourListe" :key="v.id">
-            <td>{{ formaterHeure(v.createdAt) }}</td>
-            <td>{{ resumeArticles(v.lignes) }}</td>
-            <td>{{ formaterMontant(v.total) }} {{ v.devise }}</td>
-            <td>
+            <td data-label="Heure">{{ formaterHeure(v.createdAt) }}</td>
+            <td data-label="Produits">{{ resumeArticles(v.lignes) }}</td>
+            <td data-label="Total">{{ formaterMontant(v.total) }} {{ v.devise }}</td>
+            <td data-label="Statut">
               <span class="badge" :class="v.statutSync === 'synced' ? 'badge--admin' : 'badge--caissier'">
                 {{ v.statutSync === 'synced' ? 'Synchronisée' : v.statutSync === 'erreur' ? 'Erreur' : 'En attente' }}
               </span>

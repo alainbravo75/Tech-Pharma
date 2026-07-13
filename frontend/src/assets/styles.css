@@ -192,3 +192,62 @@ td {
   border-bottom: 1px solid var(--bordure);
   font-size: 0.95rem;
 }
+
+/*
+  Tableaux responsives : sur téléphone, un tableau classique oblige à
+  faire défiler horizontalement, ce qui est pénible. Au lieu de ça,
+  chaque ligne devient une petite fiche empilée, avec le nom de colonne
+  affiché devant chaque valeur (via l'attribut data-label sur chaque td).
+  Appliquer la classe "tableau-carte" sur la balise <table>.
+*/
+@media (max-width: 640px) {
+  table.tableau-carte thead { display: none; }
+
+  table.tableau-carte,
+  table.tableau-carte tbody,
+  table.tableau-carte tr,
+  table.tableau-carte td {
+    display: block;
+    width: 100%;
+  }
+
+  table.tableau-carte tr {
+    margin-bottom: var(--espace-sm);
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+    padding: var(--espace-sm) var(--espace-md);
+  }
+
+  table.tableau-carte tr:last-child { margin-bottom: 0; }
+
+  table.tableau-carte td {
+    border: none;
+    padding: 0.3rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--espace-md);
+    text-align: right;
+    font-size: 0.9rem;
+  }
+
+  table.tableau-carte td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--texte-secondaire);
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Une cellule sans data-label (ex: colonne "actions" finale) prend
+     toute la largeur et s'aligne à gauche, plus lisible pour des boutons. */
+  table.tableau-carte td:not([data-label]) {
+    justify-content: flex-start;
+    padding-top: var(--espace-sm);
+    margin-top: var(--espace-sm);
+    border-top: 1px dashed var(--bordure);
+  }
+}

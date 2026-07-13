@@ -14,6 +14,8 @@
           Rapports
         </RouterLink>
         <RouterLink to="/utilisateurs" class="lien-nav" v-if="authStore.estAdmin">Utilisateurs</RouterLink>
+        <RouterLink to="/journal" class="lien-nav" v-if="authStore.estAdmin">Journal</RouterLink>
+        <RouterLink to="/sauvegardes" class="lien-nav" v-if="authStore.estAdmin">Sauvegardes</RouterLink>
       </nav>
       <div class="bas-barre">
         <button class="bouton bouton--secondaire" @click="deconnecter">Déconnexion</button>
@@ -149,9 +151,18 @@ nav {
     align-items: center;
     padding: var(--espace-sm) var(--espace-md);
   }
-  .logo-pharmacie { margin-bottom: 0; margin-right: var(--espace-md); }
-  nav { flex-direction: row; }
-  .bas-barre { margin-left: auto; }
+  .logo-pharmacie { margin-bottom: 0; margin-right: var(--espace-sm); flex-shrink: 0; }
+  nav {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .lien-nav { white-space: nowrap; flex-shrink: 0; }
+  .bas-barre { margin-left: var(--espace-sm); flex-shrink: 0; }
+  .bas-barre .bouton { padding: 0.5rem 0.7rem; font-size: 0.82rem; }
   .contenu-principal { padding: var(--espace-md); }
+  .entete { padding: var(--espace-sm) var(--espace-md); flex-wrap: wrap; gap: var(--espace-sm); }
 }
 </style>

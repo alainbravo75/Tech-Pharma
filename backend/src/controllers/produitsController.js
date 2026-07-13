@@ -49,7 +49,10 @@ export function obtenir(req, res) {
 }
 
 export function creer(req, res) {
-  const { nom, forme, dosage, fabricant, codeBarre, prixAchatCdf, prixVenteCdf, prixVenteUsd, seuilStockFaible } = req.body;
+  const {
+    nom, forme, dosage, fabricant, codeBarre, prixAchatCdf, prixVenteCdf, prixVenteUsd, seuilStockFaible,
+    quantiteInitiale, datePeremptionInitiale, numeroLotInitial, fournisseurInitial,
+  } = req.body;
 
   const id = uuidv4();
   db.prepare(
@@ -70,12 +73,39 @@ export function creer(req, res) {
     seuilStockFaible ?? 10
   );
 
-  journaliser({
-    pharmacyId: req.utilisateur.pharmacy_id,
-    utilisateurId: req.utilisateur.id,
-    action: 'creation_produit',
-    details: { produit_id: id, nom },
-  });
+  const stockInitialFourni = quantiteInitiale && quantiteInitiale > 0;
+
+  // Si un stock initial est fourni, on ne garde qu'une seule ligne dans le
+  // journal ("Entrée de stock", qui montre déjà le produit et la quantité)
+  // plutôt que deux lignes redondantes ("Création produit" + "Entrée de
+  // stock" côte à côte, qui répètent la même information).
+  if (!stockInitialFourni) {
+    journaliser({
+      pharmacyId: req.utilisateur.pharmacy_id,
+      utilisateurId: req.utilisateur.id,
+      action: 'creation_produit',
+      details: { produit: nom },
+    });
+  }
+
+  if (stockInitialFourni) {
+    enregistrerEntreeStock({
+      pharmacyId: req.utilisateur.pharmacy_id,
+      produitId: id,
+      quantite: quantiteInitiale,
+      datePeremption: datePeremptionInitiale,
+      numeroLot: numeroLotInitial,
+      fournisseur: fournisseurInitial,
+      utilisateurId: req.utilisateur.id,
+    });
+
+    journaliser({
+      pharmacyId: req.utilisateur.pharmacy_id,
+      utilisateurId: req.utilisateur.id,
+      action: 'entree_stock',
+      details: { produit: nom, numeroLot: numeroLotInitial || null, quantite: quantiteInitiale },
+    });
+  }
 
   res.status(201).json({ produit: { id, nom } });
 }
@@ -123,7 +153,7 @@ export function modifier(req, res) {
     pharmacyId: req.utilisateur.pharmacy_id,
     utilisateurId: req.utilisateur.id,
     action: modifiePrix ? 'modification_prix_produit' : 'modification_produit',
-    details: { produit_id: id, champs: Object.keys(req.body) },
+    details: { produit: produit.nom, champs: Object.keys(req.body) },
   });
 
   res.json({ message: 'Produit mis à jour.' });
@@ -170,11 +200,13 @@ export function ajouterEntree(req, res) {
     utilisateurId: req.utilisateur.id,
   });
 
+  const produitInfo = db.prepare('SELECT nom FROM produits WHERE id = ?').get(id);
+
   journaliser({
     pharmacyId: req.utilisateur.pharmacy_id,
     utilisateurId: req.utilisateur.id,
     action: 'entree_stock',
-    details: { produit_id: id, lot_id: lotId, quantite },
+    details: { produit: produitInfo?.nom, numeroLot: numeroLot || null, quantite },
   });
 
   res.status(201).json({ lot_id: lotId });
@@ -200,11 +232,13 @@ export function ajouterAjustement(req, res) {
       utilisateurId: req.utilisateur.id,
     });
 
+    const produitInfo = db.prepare('SELECT nom FROM produits WHERE id = ?').get(id);
+
     journaliser({
       pharmacyId: req.utilisateur.pharmacy_id,
       utilisateurId: req.utilisateur.id,
       action: 'ajustement_stock',
-      details: { produit_id: id, lot_id: lotId, quantite, type },
+      details: { produit: produitInfo?.nom, quantite, type },
     });
 
     res.json({ nouvelle_quantite: nouvelleQuantite });

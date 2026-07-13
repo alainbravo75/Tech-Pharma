@@ -51,7 +51,7 @@ export async function envoyerRecuSms(req, res) {
       pharmacyId: req.utilisateur.pharmacy_id,
       utilisateurId: req.utilisateur.id,
       action: 'envoi_recu_sms',
-      details: { vente_id: id, telephone },
+      details: { telephone },
     });
 
     res.json({ message: 'Reçu envoyé par SMS.' });

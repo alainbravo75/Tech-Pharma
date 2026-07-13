@@ -20,6 +20,18 @@ const routes = [
     meta: { necessiteAuth: true, rolesAutorises: ['admin'] },
   },
   {
+    path: '/journal',
+    name: 'journal',
+    component: () => import('../views/JournalView.vue'),
+    meta: { necessiteAuth: true, rolesAutorises: ['admin'] },
+  },
+  {
+    path: '/sauvegardes',
+    name: 'sauvegardes',
+    component: () => import('../views/SauvegardeView.vue'),
+    meta: { necessiteAuth: true, rolesAutorises: ['admin'] },
+  },
+  {
     path: '/stock',
     name: 'stock',
     component: () => import('../views/StockView.vue'),

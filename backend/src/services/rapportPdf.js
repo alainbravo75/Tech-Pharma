@@ -76,6 +76,30 @@ export function genererPdfRapport({ rapport, nomPharmacie, res }) {
   doc.moveDown(1);
   ligneSeparatrice(doc);
 
+  // Ventes par utilisateur
+  doc.fontSize(12).fillColor('#1c2321').text('Ventes par utilisateur');
+  doc.moveDown(0.4);
+
+  if (rapport.ventesParUtilisateur.length === 0) {
+    doc.fontSize(10).fillColor('#5b6663').text('Aucune vente sur cette période.');
+  } else {
+    const colonnesUtil = [260, 120, 130];
+    doc.fontSize(9).fillColor('#5b6663');
+    enteteTableau(doc, ['Utilisateur', 'Nombre de ventes', 'Chiffre d\'affaires'], colonnesUtil);
+
+    doc.fontSize(9.5).fillColor('#1c2321');
+    for (const u of rapport.ventesParUtilisateur) {
+      ligneTableau(
+        doc,
+        [u.nom || 'Utilisateur supprimé', String(u.nombre_ventes), `${formaterMontant(u.chiffre_affaires_cdf)} CDF`],
+        colonnesUtil
+      );
+    }
+  }
+
+  doc.moveDown(1);
+  ligneSeparatrice(doc);
+
   // Produits les plus rentables
   doc.fontSize(12).fillColor('#1c2321').text('Produits les plus rentables');
   doc.moveDown(0.4);

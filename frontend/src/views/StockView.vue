@@ -64,7 +64,7 @@
     <p v-if="produitsStore.erreur" class="message-erreur" role="alert">{{ produitsStore.erreur }}</p>
 
     <div class="carte">
-      <table>
+      <table class="tableau-carte">
         <thead>
           <tr>
             <th>Produit</th>
@@ -76,17 +76,17 @@
         </thead>
         <tbody>
           <tr v-for="p in produitsStore.liste" :key="p.id">
-            <td>
+            <td data-label="Produit">
               <button class="nom-produit-clickable" @click="ouvrirDetail(p)">{{ p.nom }}</button>
               <div class="sous-texte">{{ p.fabricant || '—' }}</div>
             </td>
-            <td>{{ p.forme || '—' }}<span v-if="p.dosage"> · {{ p.dosage }}</span></td>
-            <td>
+            <td data-label="Forme / dosage">{{ p.forme || '—' }}<span v-if="p.dosage"> · {{ p.dosage }}</span></td>
+            <td data-label="Stock">
               <span class="badge" :class="p.quantite_totale <= p.seuil_stock_faible ? 'badge--inactif' : 'badge--admin'">
                 {{ p.quantite_totale }}
               </span>
             </td>
-            <td>{{ formaterMontant(p.prix_vente_cdf) }} CDF<br /><span class="sous-texte">{{ formaterMontant(p.prix_vente_usd) }} USD</span></td>
+            <td data-label="Prix vente">{{ formaterMontant(p.prix_vente_cdf) }} CDF<br /><span class="sous-texte">{{ formaterMontant(p.prix_vente_usd) }} USD</span></td>
             <td class="cellule-actions">
               <button class="lien-action" @click="ouvrirDetail(p)">Détails</button>
               <button class="lien-action" @click="ouvrirEntreeStock(p)">+ Stock</button>
@@ -154,6 +154,31 @@
             <label for="seuil">Seuil de stock faible</label>
             <input id="seuil" v-model.number="formProduit.seuilStockFaible" type="number" min="0" step="1" />
           </div>
+
+          <template v-if="!produitEnEdition">
+            <hr class="separateur-formulaire" />
+            <p class="note-permission">
+              Stock initial (optionnel) — ajoute directement un premier lot à la création, sans repasser par "+ Stock" juste après.
+            </p>
+            <div class="champ">
+              <label for="quantiteInitiale">Quantité reçue</label>
+              <input id="quantiteInitiale" v-model.number="formProduit.quantiteInitiale" type="number" min="0" step="1" />
+            </div>
+            <div class="champ" v-if="formProduit.quantiteInitiale > 0">
+              <label for="datePeremptionInitiale">Date de péremption</label>
+              <input id="datePeremptionInitiale" v-model="formProduit.datePeremptionInitiale" type="date" required />
+            </div>
+            <div class="ligne-champs" v-if="formProduit.quantiteInitiale > 0">
+              <div class="champ">
+                <label for="numeroLotInitial">N° de lot (optionnel)</label>
+                <input id="numeroLotInitial" v-model="formProduit.numeroLotInitial" />
+              </div>
+              <div class="champ">
+                <label for="fournisseurInitial">Fournisseur (optionnel)</label>
+                <input id="fournisseurInitial" v-model="formProduit.fournisseurInitial" />
+              </div>
+            </div>
+          </template>
 
           <div class="actions-modale">
             <button type="button" class="bouton bouton--secondaire" @click="modaleProduitOuverte = false">Annuler</button>
@@ -230,7 +255,7 @@
 
         <h3 class="titre-section">Historique des lots</h3>
         <div class="tableau-scroll">
-          <table>
+          <table class="tableau-carte">
             <thead>
               <tr>
                 <th>N° lot</th>
@@ -243,12 +268,12 @@
             </thead>
             <tbody>
               <tr v-for="lot in detailProduit?.lots || []" :key="lot.id">
-                <td>{{ lot.numero_lot || '—' }}</td>
-                <td>{{ formaterDate(lot.date_reception) }}</td>
-                <td>{{ formaterDate(lot.date_peremption) }}</td>
-                <td>{{ lot.quantite }}</td>
-                <td>{{ lot.fournisseur || '—' }}</td>
-                <td>
+                <td data-label="N° lot">{{ lot.numero_lot || '—' }}</td>
+                <td data-label="Date d'achat">{{ formaterDate(lot.date_reception) }}</td>
+                <td data-label="Date péremption">{{ formaterDate(lot.date_peremption) }}</td>
+                <td data-label="Quantité">{{ lot.quantite }}</td>
+                <td data-label="Fournisseur">{{ lot.fournisseur || '—' }}</td>
+                <td data-label="Statut">
                   <span class="badge" :class="classeBadgeStatutLot(lot)">{{ libelleStatutLot(lot) }}</span>
                 </td>
               </tr>
@@ -350,6 +375,7 @@ const envoiEnCours = ref(false);
 const formProduit = reactive({
   nom: '', forme: '', dosage: '', fabricant: '', codeBarre: '',
   prixAchatCdf: 0, prixVenteCdf: 0, prixVenteUsd: 0, seuilStockFaible: 10,
+  quantiteInitiale: null, datePeremptionInitiale: '', numeroLotInitial: '', fournisseurInitial: '',
 });
 
 const formEntree = reactive({ quantite: null, datePeremption: '', numeroLot: '', fournisseur: '' });
@@ -423,7 +449,10 @@ function formaterMontant(montant) {
 
 function ouvrirCreationProduit() {
   produitEnEdition.value = null;
-  Object.assign(formProduit, { nom: '', forme: '', dosage: '', fabricant: '', codeBarre: '', prixAchatCdf: 0, prixVenteCdf: 0, prixVenteUsd: 0, seuilStockFaible: 10 });
+  Object.assign(formProduit, {
+    nom: '', forme: '', dosage: '', fabricant: '', codeBarre: '', prixAchatCdf: 0, prixVenteCdf: 0, prixVenteUsd: 0, seuilStockFaible: 10,
+    quantiteInitiale: null, datePeremptionInitiale: '', numeroLotInitial: '', fournisseurInitial: '',
+  });
   erreurFormulaire.value = '';
   modaleProduitOuverte.value = true;
 }
@@ -449,8 +478,18 @@ async function soumettreProduit() {
       delete payload.prixVenteUsd;
     }
     if (produitEnEdition.value) {
+      delete payload.quantiteInitiale;
+      delete payload.datePeremptionInitiale;
+      delete payload.numeroLotInitial;
+      delete payload.fournisseurInitial;
       await produitsStore.modifier(produitEnEdition.value.id, payload);
     } else {
+      if (!payload.quantiteInitiale) {
+        delete payload.quantiteInitiale;
+        delete payload.datePeremptionInitiale;
+        delete payload.numeroLotInitial;
+        delete payload.fournisseurInitial;
+      }
       await produitsStore.creer(payload);
     }
     modaleProduitOuverte.value = false;
@@ -636,6 +675,12 @@ async function soumettreAjustement() {
   background: var(--fond-neutre);
   padding: var(--espace-sm);
   border-radius: var(--rayon);
+}
+
+.separateur-formulaire {
+  border: none;
+  border-top: 1px dashed var(--bordure);
+  margin: var(--espace-md) 0;
 }
 
 .actions-modale {

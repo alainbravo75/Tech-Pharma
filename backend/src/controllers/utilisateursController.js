@@ -32,7 +32,7 @@ export async function creer(req, res) {
     pharmacyId: req.utilisateur.pharmacy_id,
     utilisateurId: req.utilisateur.id,
     action: 'creation_utilisateur',
-    details: { utilisateur_cree: id, role },
+    details: { nom, telephone, role },
   });
 
   res.status(201).json({
@@ -81,7 +81,7 @@ export async function modifier(req, res) {
     pharmacyId: req.utilisateur.pharmacy_id,
     utilisateurId: req.utilisateur.id,
     action: 'modification_utilisateur',
-    details: { utilisateur_modifie: id, champs: Object.keys(req.body) },
+    details: { nom: cible.nom, champs: Object.keys(req.body) },
   });
 
   res.json({ message: 'Utilisateur mis à jour.' });
@@ -95,7 +95,7 @@ export function supprimer(req, res) {
   }
 
   const cible = db
-    .prepare('SELECT id FROM utilisateurs WHERE id = ? AND pharmacy_id = ?')
+    .prepare('SELECT id, nom FROM utilisateurs WHERE id = ? AND pharmacy_id = ?')
     .get(id, req.utilisateur.pharmacy_id);
 
   if (!cible) {
@@ -110,7 +110,7 @@ export function supprimer(req, res) {
     pharmacyId: req.utilisateur.pharmacy_id,
     utilisateurId: req.utilisateur.id,
     action: 'suppression_utilisateur',
-    details: { utilisateur_supprime: id },
+    details: { nom: cible.nom },
   });
 
   res.json({ message: 'Utilisateur désactivé.' });

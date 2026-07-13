@@ -67,7 +67,7 @@
       <div class="grille-deux-colonnes">
         <div class="carte">
           <h2>Produits les plus vendus</h2>
-          <table v-if="rapport.produitsPlusVendus.length > 0">
+          <table v-if="rapport.produitsPlusVendus.length > 0" class="tableau-carte">
             <thead>
               <tr>
                 <th>Produit</th>
@@ -78,10 +78,10 @@
             </thead>
             <tbody>
               <tr v-for="p in rapport.produitsPlusVendus" :key="p.id">
-                <td>{{ p.nom }}</td>
-                <td>{{ p.quantite_vendue }}</td>
-                <td>{{ formaterMontant(p.montant_cdf) }}</td>
-                <td>{{ formaterMontant(p.montant_usd) }}</td>
+                <td data-label="Produit">{{ p.nom }}</td>
+                <td data-label="Qté">{{ p.quantite_vendue }}</td>
+                <td data-label="CDF">{{ formaterMontant(p.montant_cdf) }}</td>
+                <td data-label="USD">{{ formaterMontant(p.montant_usd) }}</td>
               </tr>
             </tbody>
           </table>
@@ -89,8 +89,31 @@
         </div>
 
         <div class="carte">
+          <h2>Ventes par utilisateur</h2>
+          <table v-if="rapport.ventesParUtilisateur.length > 0" class="tableau-carte">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Nb ventes</th>
+                <th>CA (CDF)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="u in rapport.ventesParUtilisateur" :key="u.id || 'inconnu'">
+                <td data-label="Utilisateur">{{ u.nom || 'Utilisateur supprimé' }}</td>
+                <td data-label="Nb ventes">{{ u.nombre_ventes }}</td>
+                <td data-label="CA (CDF)">{{ formaterMontant(u.chiffre_affaires_cdf) }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else class="etat-vide">Aucune vente sur cette période.</p>
+        </div>
+      </div>
+
+      <div class="grille-deux-colonnes">
+        <div class="carte">
           <h2>Produits les plus rentables</h2>
-          <table v-if="rapport.produitsPlusRentables.length > 0">
+          <table v-if="rapport.produitsPlusRentables.length > 0" class="tableau-carte">
             <thead>
               <tr>
                 <th>Produit</th>
@@ -101,18 +124,16 @@
             </thead>
             <tbody>
               <tr v-for="p in rapport.produitsPlusRentables" :key="p.id">
-                <td>{{ p.nom }}</td>
-                <td>{{ p.quantite_vendue }}</td>
-                <td :class="{ 'valeur-negative': p.benefice_cdf < 0 }">{{ formaterMontant(p.benefice_cdf) }} CDF</td>
-                <td :class="{ 'valeur-negative': p.marge_pourcent < 0 }">{{ p.marge_pourcent.toFixed(0) }}%</td>
+                <td data-label="Produit">{{ p.nom }}</td>
+                <td data-label="Qté">{{ p.quantite_vendue }}</td>
+                <td data-label="Bénéfice" :class="{ 'valeur-negative': p.benefice_cdf < 0 }">{{ formaterMontant(p.benefice_cdf) }} CDF</td>
+                <td data-label="Marge" :class="{ 'valeur-negative': p.marge_pourcent < 0 }">{{ p.marge_pourcent.toFixed(0) }}%</td>
               </tr>
             </tbody>
           </table>
           <p v-else class="etat-vide">Aucune donnée sur cette période.</p>
         </div>
-      </div>
 
-      <div class="grille-deux-colonnes grille-deux-colonnes--stock">
         <div class="carte">
           <h2>Valeur du stock actuel</h2>
           <div class="ligne-info">
@@ -127,17 +148,17 @@
             Valorisation à la date du jour (indépendante de la période sélectionnée ci-dessus).
           </p>
         </div>
+      </div>
 
-        <div class="carte">
-          <h2>Pertes sur la période</h2>
-          <div class="ligne-info">
-            <span>Quantité perdue</span>
-            <strong>{{ rapport.pertes.quantite_perdue }}</strong>
-          </div>
-          <div class="ligne-info">
-            <span>Valeur (prix d'achat)</span>
-            <strong>{{ formaterMontant(rapport.pertes.valeur_perte_cdf) }} CDF</strong>
-          </div>
+      <div class="carte carte-pertes">
+        <h2>Pertes sur la période</h2>
+        <div class="ligne-info">
+          <span>Quantité perdue</span>
+          <strong>{{ rapport.pertes.quantite_perdue }}</strong>
+        </div>
+        <div class="ligne-info">
+          <span>Valeur (prix d'achat)</span>
+          <strong>{{ formaterMontant(rapport.pertes.valeur_perte_cdf) }} CDF</strong>
         </div>
       </div>
     </template>
@@ -301,11 +322,15 @@ function formaterMontant(montant) {
   grid-template-columns: 1.4fr 1fr;
   gap: var(--espace-lg);
   align-items: start;
+  margin-bottom: var(--espace-lg);
 }
 .grille-deux-colonnes--stock { margin-top: var(--espace-lg); grid-template-columns: 1fr 1fr; }
 
 .grille-deux-colonnes h2 { font-size: 1rem; margin-bottom: var(--espace-md); }
 .titre-secondaire { margin-top: var(--espace-lg); }
+
+.carte-pertes { max-width: 420px; }
+.carte-pertes h2 { font-size: 1rem; margin-bottom: var(--espace-md); }
 
 .valeur-negative { color: var(--couleur-danger); font-weight: 700; }
 
@@ -325,6 +350,11 @@ function formaterMontant(montant) {
 }
 
 .etat-vide { text-align: center; color: var(--texte-secondaire); padding: var(--espace-lg); }
+
+@media (max-width: 900px) {
+  .grille-deux-colonnes,
+  .grille-deux-colonnes--stock { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 900px) {
   .grille-deux-colonnes { grid-template-columns: 1fr; }

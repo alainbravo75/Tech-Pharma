@@ -8,8 +8,11 @@ Application web progressive (PWA) de gestion de pharmacie, conçue pour fonction
 - [x] Étape 2 — Gestion de stock (produits, lots, alertes péremption)
 - [x] Étape 3 — Point de vente offline + synchronisation
 - [x] Étape 4 — Envoi de reçu par WhatsApp / SMS
-- [x] **Rapports (journalier/hebdomadaire/mensuel) + export PDF** *(cette version)*
+- [x] **Rapports (journalier/hebdomadaire/mensuel) + export PDF**
+- [x] **Journal d'activité consultable** (admin) *(cette version)*
+- [x] **Sauvegardes de la base de données** (admin) *(cette version)*
 - [ ] Ordonnances et suivi patients (post-MVP, sur demande)
+- [ ] Scan de code-barres (reporté, sur demande future)
 
 ## Stack technique
 

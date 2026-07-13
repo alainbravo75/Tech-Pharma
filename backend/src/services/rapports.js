@@ -123,6 +123,21 @@ export function genererRapport({ pharmacyId, periode, date }) {
     )
     .all(pharmacyId, debut, fin);
 
+  // Ventes par utilisateur (qui a vendu quoi) - utile pour la
+  // responsabilisation et le suivi de performance par caissier.
+  const ventesParUtilisateur = db
+    .prepare(
+      `SELECT u.id, u.nom,
+         COUNT(*) AS nombre_ventes,
+         COALESCE(SUM(CASE WHEN v.devise = 'CDF' THEN v.total ELSE v.total * v.taux_change_utilise END), 0) AS chiffre_affaires_cdf
+       FROM ventes v
+       LEFT JOIN utilisateurs u ON u.id = v.utilisateur_id
+       WHERE v.pharmacy_id = ? AND v.created_at BETWEEN ? AND ?
+       GROUP BY v.utilisateur_id
+       ORDER BY chiffre_affaires_cdf DESC`
+    )
+    .all(pharmacyId, debut, fin);
+
   // Produits les plus rentables (par bénéfice total, pas par volume) :
   // un produit peu vendu mais à forte marge peut valoir plus qu'un
   // produit très vendu mais à marge faible - c'est l'intérêt de ce
@@ -192,6 +207,7 @@ export function genererRapport({ pharmacyId, periode, date }) {
     nombreVentes,
     produitsPlusVendus,
     produitsPlusRentables,
+    ventesParUtilisateur,
     valeurStock,
     pertes,
   };
