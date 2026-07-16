@@ -34,7 +34,7 @@
             </div>
             <span
               class="badge-stock"
-              :class="{ 'badge-stock--faible': p.quantite_totale <= (p.seuil_stock_faible ?? 10) }"
+              :class="classeBadgeStockCaisse(p)"
             >
               {{ p.quantite_totale }}
             </span>
@@ -67,7 +67,7 @@
             <div class="controle-quantite">
               <button @click="caisseStore.modifierQuantite(l.produitId, l.quantite - 1)">−</button>
               <span>{{ l.quantite }}</span>
-              <button @click="caisseStore.modifierQuantite(l.produitId, l.quantite + 1)">+</button>
+              <button @click="incrementerQuantite(l)">+</button>
             </div>
             <span class="sous-total">{{ formaterMontant(prixLigne(l) * l.quantite) }}</span>
             <button class="retirer-ligne" @click="caisseStore.retirerDuPanier(l.produitId)" aria-label="Retirer">×</button>
@@ -248,11 +248,50 @@ function rechercherAvecDelai() {
   delaiRecherche = setTimeout(() => produitsStore.charger(recherche.value), 300);
 }
 
+function classeBadgeStockCaisse(p) {
+  if (p.quantite_totale <= 0) return 'badge-stock--epuise';
+  if (p.quantite_totale <= (p.seuil_stock_faible ?? 10)) return 'badge-stock--faible';
+  return '';
+}
+
 function ajouter(produit) {
+  // Un stock à 0 ne doit pas se vendre "en silence" : soit on bloque, soit
+  // on force une confirmation explicite pour les cas rares où le stock
+  // affiché serait en retard sur la réalité (ex: livraison pas encore
+  // enregistrée). Pas de blocage strict pour rester cohérent avec la
+  // philosophie "ne jamais empêcher une vente" adoptée pour la synchro,
+  // mais on ne laisse plus jamais passer ça sans un avertissement clair.
+  if (produit.quantite_totale <= 0) {
+    const confirme = confirm(
+      `⚠ "${produit.nom}" est marqué à 0 en stock. Confirmes-tu vouloir quand même l'ajouter à la vente ?`
+    );
+    if (!confirme) return;
+  } else {
+    const ligneExistante = caisseStore.panier.find((l) => l.produitId === produit.id);
+    const quantiteDejaDansPanier = ligneExistante ? ligneExistante.quantite : 0;
+    if (quantiteDejaDansPanier + 1 > produit.quantite_totale) {
+      const confirme = confirm(
+        `⚠ Il ne reste que ${produit.quantite_totale} unité(s) de "${produit.nom}" en stock. Confirmes-tu vouloir quand même en ajouter davantage ?`
+      );
+      if (!confirme) return;
+    }
+  }
+
   caisseStore.ajouterAuPanier(produit);
   recherche.value = '';
   produitsStore.charger();
   champRecherche.value?.focus();
+}
+
+function incrementerQuantite(ligne) {
+  const stockConnu = ligne.stockDisponible;
+  if (stockConnu != null && ligne.quantite + 1 > stockConnu) {
+    const confirme = confirm(
+      `⚠ Il ne reste que ${stockConnu} unité(s) de "${ligne.nom}" en stock. Confirmes-tu vouloir quand même augmenter la quantité ?`
+    );
+    if (!confirme) return;
+  }
+  caisseStore.modifierQuantite(ligne.produitId, ligne.quantite + 1);
 }
 
 function prixLigne(l) {
@@ -375,6 +414,7 @@ async function envoyerParSms() {
   text-align: center;
 }
 .badge-stock--faible { background: #fef3e2; color: #92400e; }
+.badge-stock--epuise { background: #fdecea; color: #b3261e; font-weight: 700; }
 
 .colonne-panier {
   position: sticky;

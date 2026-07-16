@@ -82,7 +82,7 @@
             </td>
             <td data-label="Forme / dosage">{{ p.forme || '—' }}<span v-if="p.dosage"> · {{ p.dosage }}</span></td>
             <td data-label="Stock">
-              <span class="badge" :class="p.quantite_totale <= p.seuil_stock_faible ? 'badge--inactif' : 'badge--admin'">
+              <span class="badge" :class="classeBadgeStock(p)">
                 {{ p.quantite_totale }}
               </span>
             </td>
@@ -409,6 +409,15 @@ const quantiteTotaleDetail = computed(() =>
 );
 
 const SEUIL_JOURS_PEREMPTION_PROCHE = 60;
+
+// Orange sous le seuil défini, rouge si totalement épuisé (0), sinon
+// couleur normale - distinction utile pour repérer en un coup d'œil ce
+// qui nécessite une commande urgente vs un simple réapprovisionnement.
+function classeBadgeStock(p) {
+  if (p.quantite_totale <= 0) return 'badge--stock-epuise';
+  if (p.quantite_totale <= p.seuil_stock_faible) return 'badge--stock-faible';
+  return 'badge--admin';
+}
 
 function statutLot(lot) {
   const aujourdHui = new Date();
