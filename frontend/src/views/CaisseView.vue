@@ -255,26 +255,21 @@ function classeBadgeStockCaisse(p) {
 }
 
 function ajouter(produit) {
-  // Un stock à 0 ne doit pas se vendre "en silence" : soit on bloque, soit
-  // on force une confirmation explicite pour les cas rares où le stock
-  // affiché serait en retard sur la réalité (ex: livraison pas encore
-  // enregistrée). Pas de blocage strict pour rester cohérent avec la
-  // philosophie "ne jamais empêcher une vente" adoptée pour la synchro,
-  // mais on ne laisse plus jamais passer ça sans un avertissement clair.
+  // Blocage strict : impossible d'ajouter plus que le stock réellement
+  // disponible. Contrairement à la tolérance de stock négatif côté
+  // serveur (qui concerne uniquement la réconciliation d'une vente déjà
+  // faite hors ligne), ici la quantité est connue en temps réel - vendre
+  // au-delà n'a pas de sens et créait de la confusion.
   if (produit.quantite_totale <= 0) {
-    const confirme = confirm(
-      `⚠ "${produit.nom}" est marqué à 0 en stock. Confirmes-tu vouloir quand même l'ajouter à la vente ?`
-    );
-    if (!confirme) return;
-  } else {
-    const ligneExistante = caisseStore.panier.find((l) => l.produitId === produit.id);
-    const quantiteDejaDansPanier = ligneExistante ? ligneExistante.quantite : 0;
-    if (quantiteDejaDansPanier + 1 > produit.quantite_totale) {
-      const confirme = confirm(
-        `⚠ Il ne reste que ${produit.quantite_totale} unité(s) de "${produit.nom}" en stock. Confirmes-tu vouloir quand même en ajouter davantage ?`
-      );
-      if (!confirme) return;
-    }
+    alert(`"${produit.nom}" n'a plus de stock disponible. Impossible de l'ajouter à la vente.`);
+    return;
+  }
+
+  const ligneExistante = caisseStore.panier.find((l) => l.produitId === produit.id);
+  const quantiteDejaDansPanier = ligneExistante ? ligneExistante.quantite : 0;
+  if (quantiteDejaDansPanier + 1 > produit.quantite_totale) {
+    alert(`Stock insuffisant : il ne reste que ${produit.quantite_totale} unité(s) de "${produit.nom}".`);
+    return;
   }
 
   caisseStore.ajouterAuPanier(produit);
@@ -286,10 +281,8 @@ function ajouter(produit) {
 function incrementerQuantite(ligne) {
   const stockConnu = ligne.stockDisponible;
   if (stockConnu != null && ligne.quantite + 1 > stockConnu) {
-    const confirme = confirm(
-      `⚠ Il ne reste que ${stockConnu} unité(s) de "${ligne.nom}" en stock. Confirmes-tu vouloir quand même augmenter la quantité ?`
-    );
-    if (!confirme) return;
+    alert(`Stock insuffisant : il ne reste que ${stockConnu} unité(s) de "${ligne.nom}".`);
+    return;
   }
   caisseStore.modifierQuantite(ligne.produitId, ligne.quantite + 1);
 }
