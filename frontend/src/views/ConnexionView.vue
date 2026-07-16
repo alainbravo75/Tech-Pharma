@@ -10,6 +10,9 @@
       <p v-if="authStore.erreur" class="message-erreur" role="alert">
         {{ authStore.erreur }}
       </p>
+      <p v-else-if="authStore.sessionExpiree" class="message-erreur" role="alert">
+        Ta session a expiré après un certain temps d'inactivité. Reconnecte-toi pour continuer.
+      </p>
 
       <form @submit.prevent="soumettre">
         <div class="champ">

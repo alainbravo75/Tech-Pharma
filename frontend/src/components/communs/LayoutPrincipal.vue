@@ -1,21 +1,28 @@
 <template>
   <div class="mise-en-page">
-    <aside class="barre-laterale">
-      <div class="logo-pharmacie" aria-hidden="true">+</div>
-      <nav>
-        <RouterLink to="/" class="lien-nav">Tableau de bord</RouterLink>
-        <RouterLink to="/caisse" class="lien-nav">Caisse</RouterLink>
-        <RouterLink to="/stock" class="lien-nav">Stock</RouterLink>
+    <aside class="barre-laterale" :class="{ 'barre-laterale--ouverte': menuMobileOuvert }">
+      <div class="entete-barre">
+        <div class="logo-pharmacie" aria-hidden="true">+</div>
+        <button class="bouton-hamburger" @click="menuMobileOuvert = !menuMobileOuvert" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+      <nav :class="{ 'nav--ouverte': menuMobileOuvert }">
+        <RouterLink to="/" class="lien-nav" @click="menuMobileOuvert = false">Tableau de bord</RouterLink>
+        <RouterLink to="/caisse" class="lien-nav" @click="menuMobileOuvert = false">Caisse</RouterLink>
+        <RouterLink to="/stock" class="lien-nav" @click="menuMobileOuvert = false">Stock</RouterLink>
         <RouterLink
           to="/rapports"
           class="lien-nav"
           v-if="authStore.utilisateur?.role === 'admin' || authStore.utilisateur?.role === 'pharmacien'"
+          @click="menuMobileOuvert = false"
         >
           Rapports
         </RouterLink>
-        <RouterLink to="/utilisateurs" class="lien-nav" v-if="authStore.estAdmin">Utilisateurs</RouterLink>
-        <RouterLink to="/journal" class="lien-nav" v-if="authStore.estAdmin">Journal</RouterLink>
-        <RouterLink to="/sauvegardes" class="lien-nav" v-if="authStore.estAdmin">Sauvegardes</RouterLink>
+        <RouterLink to="/utilisateurs" class="lien-nav" v-if="authStore.estAdmin" @click="menuMobileOuvert = false">Utilisateurs</RouterLink>
+        <RouterLink to="/journal" class="lien-nav" v-if="authStore.estAdmin" @click="menuMobileOuvert = false">Journal</RouterLink>
+        <RouterLink to="/sauvegardes" class="lien-nav" v-if="authStore.estAdmin" @click="menuMobileOuvert = false">Sauvegardes</RouterLink>
+        <button class="bouton bouton--secondaire bouton-deconnexion-mobile" @click="deconnecter">Déconnexion</button>
       </nav>
       <div class="bas-barre">
         <button class="bouton bouton--secondaire" @click="deconnecter">Déconnexion</button>
@@ -41,13 +48,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/authStore.js';
 import StatutSync from './StatutSync.vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const menuMobileOuvert = ref(false);
 
 const libelleRole = computed(() => {
   const roles = { admin: 'Administrateur', pharmacien: 'Pharmacien', caissier: 'Caissier' };
@@ -55,6 +63,7 @@ const libelleRole = computed(() => {
 });
 
 async function deconnecter() {
+  menuMobileOuvert.value = false;
   await authStore.deconnecter();
   router.push('/connexion');
 }
@@ -89,6 +98,31 @@ async function deconnecter() {
   margin-bottom: var(--espace-lg);
 }
 
+.entete-barre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bouton-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.bouton-hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+
 nav {
   display: flex;
   flex-direction: column;
@@ -114,6 +148,8 @@ nav {
   color: #fff;
   font-weight: 700;
 }
+
+.bouton-deconnexion-mobile { display: none; }
 
 .zone-contenu {
   flex: 1;
@@ -147,21 +183,34 @@ nav {
   .mise-en-page { flex-direction: column; }
   .barre-laterale {
     width: 100%;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     padding: var(--espace-sm) var(--espace-md);
   }
-  .logo-pharmacie { margin-bottom: 0; margin-right: var(--espace-sm); flex-shrink: 0; }
+  .logo-pharmacie { margin-bottom: 0; }
+  .bouton-hamburger { display: flex; }
+
   nav {
-    flex-direction: row;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease;
+    gap: 0.15rem;
   }
-  nav::-webkit-scrollbar { display: none; }
-  .lien-nav { white-space: nowrap; flex-shrink: 0; }
-  .bas-barre { margin-left: var(--espace-sm); flex-shrink: 0; }
-  .bas-barre .bouton { padding: 0.5rem 0.7rem; font-size: 0.82rem; }
+  nav.nav--ouverte {
+    max-height: 400px;
+    margin-top: var(--espace-sm);
+    padding-top: var(--espace-sm);
+    border-top: 1px solid rgba(255,255,255,0.15);
+  }
+  .lien-nav { padding: 0.75rem 0.8rem; }
+
+  .bas-barre { display: none; }
+  .bouton-deconnexion-mobile {
+    display: block;
+    margin-top: var(--espace-sm);
+    width: 100%;
+  }
+
   .contenu-principal { padding: var(--espace-md); }
   .entete { padding: var(--espace-sm) var(--espace-md); flex-wrap: wrap; gap: var(--espace-sm); }
 }

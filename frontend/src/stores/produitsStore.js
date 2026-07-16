@@ -40,7 +40,7 @@ export const useProduitsStore = defineStore('produits', {
       }
     },
 
-    async chargerAlertes() {
+    async chargerAlertes(estUneRelance = false) {
       try {
         const { data } = await api.get('/produits/alertes');
         this.alertes = {
@@ -48,8 +48,16 @@ export const useProduitsStore = defineStore('produits', {
           peremptionProche: data.peremptionProche,
           expires: data.expires,
         };
-      } catch {
-        // silencieux : les alertes ne sont qu'indicatives, pas critique hors ligne
+      } catch (err) {
+        console.error('Échec du chargement des alertes de péremption :', err);
+        // Une seule nouvelle tentative après un court délai : sur une
+        // connexion instable, la requête peut échouer une fois puis
+        // réussir juste après. Le stock faible, lui, ne dépend plus de
+        // cet appel (voir StockView.vue) - seules les alertes de
+        // péremption restent concernées par un échec ici.
+        if (!estUneRelance) {
+          setTimeout(() => this.chargerAlertes(true), 4000);
+        }
       }
     },
 

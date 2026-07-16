@@ -10,15 +10,25 @@ export async function creerVenteLocale(vente) {
 }
 
 export async function listerNonSynchronisees() {
-  return db.ventes_locales.where('statutSync').equals('local').toArray();
+  // On retente aussi les ventes marquées "erreur" : une erreur peut être
+  // transitoire (coupure réseau en plein envoi, délai dépassé sur une
+  // connexion instable) plutôt que définitive. On limite quand même le
+  // nombre de tentatives pour ne pas boucler indéfiniment sur une vente
+  // qui échouerait pour une vraie raison durable (ex: données invalides).
+  const locales = await db.ventes_locales.where('statutSync').equals('local').toArray();
+  const enErreur = await db.ventes_locales.where('statutSync').equals('erreur').toArray();
+  const enErreurRetentables = enErreur.filter((v) => (v.tentatives || 0) < 10);
+  return [...locales, ...enErreurRetentables];
 }
 
 export async function marquerSynchronisee(id) {
   await db.ventes_locales.update(id, { statutSync: 'synced' });
 }
 
-export async function marquerErreur(id) {
-  await db.ventes_locales.update(id, { statutSync: 'erreur' });
+export async function marquerErreur(id, messageErreur) {
+  const vente = await db.ventes_locales.get(id);
+  const tentatives = (vente?.tentatives || 0) + 1;
+  await db.ventes_locales.update(id, { statutSync: 'erreur', tentatives, derniereErreur: messageErreur || null });
 }
 
 export async function compterEnAttente() {

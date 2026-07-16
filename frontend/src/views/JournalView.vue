@@ -215,7 +215,7 @@ onMounted(() => charger(0));
   margin-top: var(--espace-md);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 860px) {
   .colonne-details {
     max-width: none;
     flex-direction: column;

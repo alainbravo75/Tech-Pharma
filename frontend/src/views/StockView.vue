@@ -41,10 +41,10 @@
             </li>
           </ul>
         </div>
-        <div v-if="produitsStore.alertes.stockFaible.length" class="groupe-alerte groupe-alerte--info">
+        <div v-if="produitsEnStockFaible.length" class="groupe-alerte groupe-alerte--info">
           <h3>Stock faible</h3>
           <ul>
-            <li v-for="p in produitsStore.alertes.stockFaible" :key="p.id">
+            <li v-for="p in produitsEnStockFaible" :key="p.id">
               {{ p.nom }} — {{ p.quantite_totale }} restant(s) (seuil : {{ p.seuil_stock_faible }})
             </li>
           </ul>
@@ -390,9 +390,18 @@ const quantiteAjustementSaisie = computed({
 });
 
 const totalAlertes = computed(() =>
-  produitsStore.alertes.stockFaible.length +
+  produitsEnStockFaible.value.length +
   produitsStore.alertes.peremptionProche.length +
   produitsStore.alertes.expires.length
+);
+
+// Calculé directement à partir de la liste des produits déjà chargée
+// (fiable, on sait qu'elle est à jour puisque la pastille de la colonne
+// Stock utilise la même donnée) plutôt que via un second appel réseau
+// séparé - celui-ci pouvait échouer silencieusement sur une connexion
+// instable, laissant le bandeau vide sans que personne ne s'en aperçoive.
+const produitsEnStockFaible = computed(() =>
+  produitsStore.liste.filter((p) => p.quantite_totale <= p.seuil_stock_faible)
 );
 
 const quantiteTotaleDetail = computed(() =>

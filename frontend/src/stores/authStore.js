@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import api, { definirToken } from '../services/api.js';
+import api, { definirToken, definirGestionnaireSessionExpiree } from '../services/api.js';
 import { sauvegarderSession, lireSession, effacerSession } from '../db/repositories/sessionRepository.js';
 import { statutReseau, verifierConnexionReelle } from '../sync/syncStatus.js';
 
@@ -10,6 +10,7 @@ export const useAuthStore = defineStore('auth', {
     chargement: false,
     erreur: null,
     modeOffline: false, // true si connecté via la session locale sans validation serveur
+    sessionExpiree: false, // true juste après une déconnexion forcée pour cause d'expiration
   }),
 
   getters: {
@@ -24,6 +25,18 @@ export const useAuthStore = defineStore('auth', {
      * puis revalide silencieusement auprès du serveur si la connexion existe.
      */
     async initialiser() {
+      // Si le serveur signale un jeton invalide/expiré à n'importe quel
+      // moment (pas seulement au démarrage), on déconnecte proprement
+      // plutôt que de laisser chaque écran afficher sa propre erreur brute.
+      definirGestionnaireSessionExpiree(() => {
+        this.utilisateur = null;
+        this.token = null;
+        this.modeOffline = false;
+        this.sessionExpiree = true;
+        definirToken(null);
+        effacerSession();
+      });
+
       const session = await lireSession();
       if (session) {
         this.utilisateur = session.utilisateur;
@@ -62,6 +75,7 @@ export const useAuthStore = defineStore('auth', {
         this.utilisateur = data.utilisateur;
         this.token = data.token;
         this.modeOffline = false;
+        this.sessionExpiree = false;
         definirToken(data.token);
 
         await sauvegarderSession({ token: data.token, utilisateur: data.utilisateur });

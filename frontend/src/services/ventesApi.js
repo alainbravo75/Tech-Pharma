@@ -9,6 +9,7 @@ export async function telechargerRapportPdf(periode, date) {
   const reponse = await api.get('/rapports/pdf', {
     params: { periode, date },
     responseType: 'blob',
+    timeout: 60000,
   });
 
   const url = window.URL.createObjectURL(new Blob([reponse.data], { type: 'application/pdf' }));

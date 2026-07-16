@@ -191,6 +191,7 @@ td {
   padding: 0.75rem 0.8rem;
   border-bottom: 1px solid var(--bordure);
   font-size: 0.95rem;
+  overflow-wrap: anywhere;
 }
 
 /*
@@ -200,7 +201,7 @@ td {
   affiché devant chaque valeur (via l'attribut data-label sur chaque td).
   Appliquer la classe "tableau-carte" sur la balise <table>.
 */
-@media (max-width: 640px) {
+@media (max-width: 860px) {
   table.tableau-carte thead { display: none; }
 
   table.tableau-carte,

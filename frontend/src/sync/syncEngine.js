@@ -36,17 +36,22 @@ export async function synchroniserVentes() {
 
   for (const vente of enAttente) {
     try {
-      const { id, statutSync, ...payload } = vente;
+      const { id, statutSync, tentatives, derniereErreur, ...payload } = vente;
       await envoyerVente({ id, ...payload });
       await marquerSynchronisee(id);
     } catch (err) {
-      // Erreur réseau probable (connexion coupée en cours de synchro) :
-      // on arrête la boucle, la vente reste 'local' et sera retentée plus
-      // tard. Une erreur de validation serveur (400) est aussi laissée en
-      // l'état pour ne pas perdre la vente silencieusement.
+      // Erreur réseau probable (connexion coupée ou délai dépassé en cours
+      // de synchro) : on arrête la boucle, la vente reste 'local' et sera
+      // retentée automatiquement plus tard, sans limite - c'est purement
+      // temporaire, pas une erreur de la vente elle-même.
       erreurRencontree = true;
       if (err.response) {
-        await marquerErreur(vente.id);
+        // Le serveur A répondu (donc a bien reçu la requête) mais avec une
+        // erreur - peut être transitoire (surcharge momentanée) ou une
+        // vraie donnée invalide. On la retente quand même, mais avec une
+        // limite (voir listerNonSynchronisees) pour ne pas boucler à l'infini.
+        const messageErreur = err.response.data?.erreur || `Erreur serveur (${err.response.status})`;
+        await marquerErreur(vente.id, messageErreur);
       }
       break;
     }

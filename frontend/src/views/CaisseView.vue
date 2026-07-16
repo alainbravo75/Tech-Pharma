@@ -155,6 +155,7 @@
             <th>Produits</th>
             <th>Total</th>
             <th>Statut</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -163,9 +164,23 @@
             <td data-label="Produits">{{ resumeArticles(v.lignes) }}</td>
             <td data-label="Total">{{ formaterMontant(v.total) }} {{ v.devise }}</td>
             <td data-label="Statut">
-              <span class="badge" :class="v.statutSync === 'synced' ? 'badge--admin' : 'badge--caissier'">
+              <span
+                class="badge"
+                :class="v.statutSync === 'synced' ? 'badge--admin' : 'badge--caissier'"
+                :title="v.statutSync === 'erreur' ? (v.derniereErreur || '') : ''"
+              >
                 {{ v.statutSync === 'synced' ? 'Synchronisée' : v.statutSync === 'erreur' ? 'Erreur' : 'En attente' }}
               </span>
+            </td>
+            <td>
+              <button
+                v-if="v.statutSync === 'erreur'"
+                class="lien-action"
+                :disabled="reessaiEnCours"
+                @click="reessayerSync"
+              >
+                Réessayer
+              </button>
             </td>
           </tr>
         </tbody>
@@ -183,6 +198,7 @@ import { useCaisseStore } from '../stores/caisseStore.js';
 import { genererTexteRecu, construireLienWhatsApp } from '../services/recu.js';
 import { obtenirStatutSms, envoyerRecuSms } from '../services/ventesApi.js';
 import { statutReseau } from '../sync/syncStatus.js';
+import { synchroniserVentes } from '../sync/syncEngine.js';
 
 const produitsStore = useProduitsStore();
 const caisseStore = useCaisseStore();
@@ -197,6 +213,17 @@ const smsDisponible = ref(false);
 const envoiSmsEnCours = ref(false);
 const messageEnvoiRecu = ref('');
 const erreurEnvoiRecu = ref(false);
+const reessaiEnCours = ref(false);
+
+async function reessayerSync() {
+  reessaiEnCours.value = true;
+  try {
+    await synchroniserVentes();
+    await caisseStore.chargerVentesDuJour();
+  } finally {
+    reessaiEnCours.value = false;
+  }
+}
 
 onMounted(async () => {
   await Promise.all([produitsStore.charger(), caisseStore.initialiser()]);
