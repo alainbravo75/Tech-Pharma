@@ -22,6 +22,7 @@
         <RouterLink to="/utilisateurs" class="lien-nav" v-if="authStore.estAdmin" @click="menuMobileOuvert = false">Utilisateurs</RouterLink>
         <RouterLink to="/journal" class="lien-nav" v-if="authStore.estAdmin" @click="menuMobileOuvert = false">Journal</RouterLink>
         <RouterLink to="/sauvegardes" class="lien-nav" v-if="authStore.estAdmin" @click="menuMobileOuvert = false">Sauvegardes</RouterLink>
+        <RouterLink to="/parametres" class="lien-nav" v-if="authStore.estAdmin" @click="menuMobileOuvert = false">Paramètres</RouterLink>
         <button class="bouton bouton--secondaire bouton-deconnexion-mobile" @click="deconnecter">Déconnexion</button>
       </nav>
       <div class="bas-barre">
